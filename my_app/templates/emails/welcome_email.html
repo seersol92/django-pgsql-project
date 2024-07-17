@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Website!</title>
+    <style>
+        /* Optional CSS styles for email content */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, p {
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Our Website!</h1>
+        <p>Dear {{ user }},</p>
+        <p>Thank you for registering with us. We're excited to have you on board!</p>
+        <p>Explore our website to discover amazing features and content tailored just for you.</p>
+        <p>
+            <a href="http://www.yourwebsite.com" class="btn">Get Started</a>
+        </p>
+        <p>If you have any questions or need assistance, feel free to contact us.</p>
+        <p>Best regards,<br>Your Website Team</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!-- todos/templates/todos/index.html -->
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+
+{% block content %}
+<div class="container mt-4">
+<div class="row">
+    <div class="col-md-6">
+        <h2>Todo List [{{ todos_count }}]</h2>
+    </div>
+    <div class="col-md-6 text-md-right">
+        <a href="{% url 'todo_create' %}" class="btn btn-primary">Create New Todo</a>
+    </div>
+</div>
+  <ul class="list-group">
+    {% for todo in todos %}
+    <li class="list-group-item">
+      <strong>{{ todo.title }}</strong>
+      {% if todo.completed %}
+      <span class="badge bg-success">Completed</span>
+      {% endif %}
+      <div>
+        <small>{{ todo.description }}</small>
+      </div>
+
+      <div>
+        <small>{{ todo.created_at|time_ago  }}</small>
+      </div>
+
+      <div>
+        <a href="{% url 'todo_update' todo.pk %}" class="btn btn-primary btn-sm">Update</a>
+        <form action="{% url 'todo_delete' todo.pk %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      </div>
+    </li>
+    {% empty %}
+    <li class="list-group-item">No todos yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
