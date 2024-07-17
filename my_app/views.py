@@ -14,13 +14,11 @@ from django.contrib.auth.models import User
 
 
 
-def login():
-    pass
+def login(request):
+    return render(request, 'auth/login.html')
 
 def register(request):
-    return render(request, 'auth/resgiter.html')
-
-
+    return render(request, 'auth/register.html')
 
 
 def todo_list(request):

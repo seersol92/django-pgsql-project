@@ -102,7 +102,7 @@ EMAIL_PORT = 1025
 
 
 
-# EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+# EMAIL_HOST = 'sandbox.smtp.mailtrap.io
 
 # EMAIL_HOST_USER = 'db76bf424cec6d'
 

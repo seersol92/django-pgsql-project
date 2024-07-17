@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %} Login {% endblock %}
+
+{% block styles %}
+    <style>
+       
+        .login-form {
+            background: linear-gradient(to left, #d8edff, #0bf3ff); /* Gradient background */
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for form */
+        }
+
+        .login-cover {
+            align-content: center;
+        }
+       
+        .login-cover h2, .login-cover p {
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row" style="margin-top: 30px">
+        <!-- Left cover -->
+        <div class="col-md-6 login-cover">
+            <h2>Welcome to Django!</h2>
+            <p>Join us today and start your journey.</p>
+        </div>
+
+        <!-- Right login form -->
+        <div class="col-md-6">
+            <div class="login-form">
+                <h2 class="text-center mb-4">Login</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                    </div>
+                   
+                    <button type="submit" class="button-gradient btn-block">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
