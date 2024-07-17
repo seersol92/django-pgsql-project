@@ -8,13 +8,37 @@ from .models import TodoItem
 from .forms import TodoItemForm
 
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login as login_user, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 
 
 def login(request):
+    # Check if the HTTP request method is POST (form submission)
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        print(username, password)
+         
+        # Check if a user with the provided username exists
+        if not User.objects.filter(username=username).exists():
+            # Display an error message if the username does not exist
+            messages.error(request, 'Invalid User Name!')
+            return redirect('/login/')
+         
+        # Authenticate the user with the provided username and password
+        user = authenticate(username=username, password=password)
+         
+        if user is None:
+            # Display an error message if authentication fails (invalid password)
+            messages.error(request, "Invalid Password")
+            return redirect('/login/')
+        else:
+            login_user(request, user)
+            # Log in the user and redirect to the home page upon successful login
+            return redirect('/')
     return render(request, 'auth/login.html')
 
 def register(request):
@@ -43,15 +67,20 @@ def register(request):
         send_welcome_email(email, username)
         return redirect('/register/')
      return render(request, 'auth/register.html')
-     
 
 
+@login_required
+def logout_user(request):
+    logout(request)
+    return redirect('/login')
+
+@login_required
 def todo_list(request):
     todos = TodoItem.objects.all();
     todos_count = todos.count()
     return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count})
 
-
+@login_required
 def todo_create(request):
     if request.method == 'POST':
         form = TodoItemForm(request.POST)
@@ -77,7 +106,7 @@ def send_welcome_email(user_email, username):
         html_message=html_message,  # HTML content of the email
     )
 
-
+@login_required
 def todo_update(request, pk):
     todo = get_object_or_404(TodoItem, pk=pk)
     if request.method == 'POST':
@@ -89,7 +118,7 @@ def todo_update(request, pk):
         form = TodoItemForm(instance=todo)
     return render(request, 'todos/create_todo.html', {'form': form})
 
-
+@login_required
 def todo_delete(request, pk):
     todo = get_object_or_404(TodoItem, pk=pk)
     if request.method == 'POST':
