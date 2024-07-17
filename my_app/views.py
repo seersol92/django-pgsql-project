@@ -6,14 +6,13 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .models import TodoItem
 from .forms import TodoItemForm
-
-
 from django.contrib.auth import authenticate, login as login_user, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from .decorators import anonymous_required
 
 
-
+@anonymous_required
 def login(request):
     # Check if the HTTP request method is POST (form submission)
     if request.method == "POST":
@@ -41,6 +40,8 @@ def login(request):
             return redirect('/')
     return render(request, 'auth/login.html')
 
+
+@anonymous_required
 def register(request):
      if request.method == 'POST':
         email = request.POST.get('email')
@@ -68,7 +69,6 @@ def register(request):
         return redirect('/register/')
      return render(request, 'auth/register.html')
 
-
 @login_required
 def logout_user(request):
     logout(request)
@@ -95,17 +95,6 @@ def todo_create(request):
     return render(request, 'todos/create_todo.html', {'form': form})
 
 
-def send_welcome_email(user_email, username):
-    html_message = render_to_string('emails/welcome_email.html', {'user': username})
-    plain_message = strip_tags(html_message)  # Strip HTML tags for the plain text message
-    send_mail(
-        subject='Account Registered',
-        message=plain_message,  # Plain text message (fallback for email clients that don't support HTML)
-        from_email='seersol@gmail.com',  # Replace with your email address
-        recipient_list=[user_email],
-        html_message=html_message,  # HTML content of the email
-    )
-
 @login_required
 def todo_update(request, pk):
     todo = get_object_or_404(TodoItem, pk=pk)
@@ -125,3 +114,14 @@ def todo_delete(request, pk):
         todo.delete()
         messages.success(request, 'Todo item deleted successfully!')  # Add success message
     return redirect('todo_list')
+
+def send_welcome_email(user_email, username):
+    html_message = render_to_string('emails/welcome_email.html', {'user': username})
+    plain_message = strip_tags(html_message)  # Strip HTML tags for the plain text message
+    send_mail(
+        subject='Account Registered',
+        message=plain_message,  # Plain text message (fallback for email clients that don't support HTML)
+        from_email='seersol@gmail.com',  # Replace with your email address
+        recipient_list=[user_email],
+        html_message=html_message,  # HTML content of the email
+    )
