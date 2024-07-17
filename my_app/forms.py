@@ -4,7 +4,7 @@ from .models import TodoItem
 class TodoItemForm(forms.ModelForm):
     class Meta:
         model = TodoItem
-        fields = ['title', 'description', 'completed']
+        fields = ['title', 'description', 'completed', 'file']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),

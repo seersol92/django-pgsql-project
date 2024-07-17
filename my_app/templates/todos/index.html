@@ -6,55 +6,64 @@
 
 {% block content %}
 <div class="container mt-4">
-<div class="row">
-    <div class="col-md-6">
-        <h2>Todo List [{{ todos_count }}]</h2>
-    </div>
-    <div class="col-md-6 text-md-right">
-         <!-- Filter dropdown -->
-        <div class="mb-3">
-            <label for="filterSelect" class="form-label">Filter:</label>
-            <select id="filterSelect" class="form-select" onchange="location = this.value;">
-                <option value="?filter=all" {% if filter_option == 'all' %}selected{% endif %}>All Todos</option>
-                <option value="?filter=my_todos" {% if filter_option == 'my_todos' %}selected{% endif %}>My Todos</option>
-                <option value="?filter=pending" {% if filter_option == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="?filter=completed" {% if filter_option == 'completed' %}selected{% endif %}>Completed</option>
-            </select>
-            <a href="{% url 'todo_create' %}" class="btn btn-primary">Create New Todo</a>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Todo List [{{ todos_count }}]</h2>
+        </div>
+        <div class="col-md-6 text-md-right">
+            <!-- Filter dropdown -->
+            <div class="mb-3">
+                <label for="filterSelect" class="form-label">Filter:</label>
+                <select id="filterSelect" class="form-select" onchange="location = this.value;">
+                    <option value="?filter=all" {% if filter_option == 'all' %}selected{% endif %}>All Todos</option>
+                    <option value="?filter=my_todos" {% if filter_option == 'my_todos' %}selected{% endif %}>My Todos</option>
+                    <option value="?filter=pending" {% if filter_option == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="?filter=completed" {% if filter_option == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+                <a href="{% url 'todo_create' %}" class="btn btn-primary">Create New Todo</a>
+            </div>
         </div>
     </div>
-</div>
-  <ul class="list-group">
-    {% for todo in todos %}
-    <li class="list-group-item">
-      <strong>{{ todo.title }}</strong>
-      <br />
-      <strong>Created By:</strong> {{ todo.created_by.username }}<br> 
-      {% if todo.completed %}
-      <span class="badge bg-success">Completed</span>
-      {% else %}
-      <span class="badge bg-primary">Pending</span>
-      {% endif %}
-      <div>
-        <small>{{ todo.description }}</small>
-      </div>
 
-      <div>
-        <small>{{ todo.created_at|time_ago  }}</small>
-      </div>
+{% for todo in todos %}
+        <div class="col-12 mb-4">
+            <div class="card" >
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ todo.title }} &nbsp;<span class="badge bg-success">{{ todo.created_by.username }}</span>
+                    </h5>
 
-      <div>
-        <a href="{% url 'todo_update' todo.pk %}" class="btn btn-primary btn-sm">Update</a>
-        <form action="{% url 'todo_delete' todo.pk %}" method="post" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-        </form>
-      </div>
-    </li>
-    {% empty %}
-    <li class="list-group-item">No todos yet.</li>
-    {% endfor %}
-  </ul>
+                    <div style="float:right">
+                        <!-- Display file details based on file type -->
+                    {% if todo.file %}
+                        {% with todo.file.name|lower as file_name %}
+                        {% if file_name|slice:"-4:" == ".jpg" or file_name|slice:"-5:" == ".jpeg" or file_name|slice:"-4:" == ".png" %}
+                            <img src="{{ todo.file }}" alt="Image" style="max-width: 150px; max-height: 150px;">
+                        {% else %}
+                            <p>File: <a href="{{ todo.file.url }}" download>{{ todo.file.name }}</a></p>
+                        {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    </div>
+
+                    {% if todo.completed %}
+                    <span class="badge bg-success">Completed</span>
+                    {% else %}
+                    <span class="badge bg-primary">Pending</span>
+                    {% endif %}
+                    <p class="card-text">{{ todo.description }}</p>
+
+                    <div>
+                        <a href="{% url 'todo_update' todo.pk %}" class="btn btn-primary btn-sm">Update</a>
+                        <form action="{% url 'todo_delete' todo.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+{% endfor %}
 </div>
 {% endblock %}
 

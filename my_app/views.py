@@ -98,7 +98,7 @@ def todo_list(request):
 @login_required
 def todo_create(request):
     if request.method == 'POST':
-        form = TodoItemForm(request.POST)
+        form = TodoItemForm(request.POST, request.FILES)
         print(form.data)
         if form.is_valid():
             todo_item = form.save(commit=False)

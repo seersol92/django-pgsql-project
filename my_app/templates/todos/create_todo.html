@@ -4,7 +4,7 @@
 
 <div class="container mt-4">
   <h2>{% if form.instance.pk %}Update Todo{% else %}Create Todo{% endif %}</h2>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">
