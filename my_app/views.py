@@ -76,9 +76,24 @@ def logout_user(request):
 
 @login_required
 def todo_list(request):
-    todos = TodoItem.objects.all();
+    filter_option  = request.GET.get('filter', 'all');
+
+    # Default: Fetch all TodoItem objects
+    todos = TodoItem.objects.all()
+
+    if filter_option == 'my_todos':
+    # Filter TodoItem objects where created_by matches the logged-in user
+        todos = TodoItem.objects.filter(created_by=request.user)
+
+    elif filter_option == 'completed':
+        todos = todos.filter(completed=True)
+    elif filter_option == 'pending':
+        todos = todos.filter(completed=False)
+ 
+    todos = todos.order_by('-created_at')
+
     todos_count = todos.count()
-    return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count})
+    return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count, 'filter_option': filter_option})
 
 @login_required
 def todo_create(request):
@@ -86,8 +101,9 @@ def todo_create(request):
         form = TodoItemForm(request.POST)
         print(form.data)
         if form.is_valid():
-            form.save()
-            send_welcome_email(['hssan@gmail.com'])
+            todo_item = form.save(commit=False)
+            todo_item.created_by = request.user  # Assign the current logged-in user
+            todo_item.save()
             messages.success(request, 'Todo item created successfully!')  # Add success message
             return redirect('todo_list')
     else:

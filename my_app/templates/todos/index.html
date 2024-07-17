@@ -11,15 +11,29 @@
         <h2>Todo List [{{ todos_count }}]</h2>
     </div>
     <div class="col-md-6 text-md-right">
-        <a href="{% url 'todo_create' %}" class="btn btn-primary">Create New Todo</a>
+         <!-- Filter dropdown -->
+        <div class="mb-3">
+            <label for="filterSelect" class="form-label">Filter:</label>
+            <select id="filterSelect" class="form-select" onchange="location = this.value;">
+                <option value="?filter=all" {% if filter_option == 'all' %}selected{% endif %}>All Todos</option>
+                <option value="?filter=my_todos" {% if filter_option == 'my_todos' %}selected{% endif %}>My Todos</option>
+                <option value="?filter=pending" {% if filter_option == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="?filter=completed" {% if filter_option == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+            <a href="{% url 'todo_create' %}" class="btn btn-primary">Create New Todo</a>
+        </div>
     </div>
 </div>
   <ul class="list-group">
     {% for todo in todos %}
     <li class="list-group-item">
       <strong>{{ todo.title }}</strong>
+      <br />
+      <strong>Created By:</strong> {{ todo.created_by.username }}<br> 
       {% if todo.completed %}
       <span class="badge bg-success">Completed</span>
+      {% else %}
+      <span class="badge bg-primary">Pending</span>
       {% endif %}
       <div>
         <small>{{ todo.description }}</small>
@@ -42,4 +56,9 @@
     {% endfor %}
   </ul>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+
 {% endblock %}
