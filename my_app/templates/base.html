@@ -39,15 +39,25 @@
         </div>
     </div>
 </nav>
-  <div class="container">
-    {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
+  <div class="container mt-5">
+     <!-- Display error/success messages -->
+     {% if messages %}
+      {% for message in messages %}
+          {% if message.tags %}
+              {% if message.tags == 'success' %}
+                  <div class="alert alert-success alert-dismissible fade show" role="alert">
+              {% elif message.tags == 'error' %}
+                  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              {% endif %}
+          {% else %}
+              <div class="alert alert-primary alert-dismissible fade show" role="alert">
+          {% endif %}
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     {% block content %}
      <!-- Display messages -->
     {% endblock %}

@@ -18,11 +18,35 @@ def login(request):
     return render(request, 'auth/login.html')
 
 def register(request):
-    return render(request, 'auth/register.html')
+     if request.method == 'POST':
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+         # Check if a user with the provided username already exists
+        user = User.objects.filter(username=username)
+        if user.exists():
+            # Display an information message if the username is taken
+            messages.error(request, "Username already taken!")
+            return redirect('/register/')
+        
+        # Create a new User object with the provided information
+        user = User.objects.create_user(
+            email=email,
+            username=username
+        )         
+        # Set the user's password and save the user object
+        user.set_password(password)
+        user.save()
+         
+        # Display an information message indicating successful account creation
+        messages.success(request, "User created Successfully!")
+        send_welcome_email(email, username)
+        return redirect('/register/')
+     return render(request, 'auth/register.html')
+     
 
 
 def todo_list(request):
-    send_welcome_email(['hssan@gmail.com', 'amir@gmail.com'])
     todos = TodoItem.objects.all();
     todos_count = todos.count()
     return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count})
@@ -42,18 +66,14 @@ def todo_create(request):
     return render(request, 'todos/create_todo.html', {'form': form})
 
 
-def send_welcome_email(user_email):
-    subject = 'Welcome to !'
-    html_message = render_to_string('emails/welcome_email.html', {'user': 'hadi mughal'})
+def send_welcome_email(user_email, username):
+    html_message = render_to_string('emails/welcome_email.html', {'user': username})
     plain_message = strip_tags(html_message)  # Strip HTML tags for the plain text message
-    from_email = 'seersol@gmail.com'  # Replace with your email address or use DEFAULT_FROM_EMAIL
-    to_email = user_email  # List of recipient(s) email addresses
-
     send_mail(
-        subject='Your Website - HTML Email',
+        subject='Account Registered',
         message=plain_message,  # Plain text message (fallback for email clients that don't support HTML)
-        from_email='your_email@gmail.com',  # Replace with your email address
-        recipient_list=user_email,
+        from_email='seersol@gmail.com',  # Replace with your email address
+        recipient_list=[user_email],
         html_message=html_message,  # HTML content of the email
     )
 
