@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  postgresql:
+        image: postgres:16.2
+        container_name: postgresql
+        environment:
+          POSTGRES_DB: ${DB_DATABASE}
+          POSTGRES_USER: ${DB_USERNAME}
+          POSTGRES_PASSWORD: ${DB_PASSWORD}
+          PGDATA: /data/postgres
+          TZ: Asia/Karachi
+        healthcheck:
+          test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
+          interval: 5s
+          timeout: 5s
+          retries: 5
+        volumes:
+          - postgresql:/data/postgres
+        ports:
+          - "${FORWARD_DB_PORT:-5432}:5432"
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "8025:8025"  # MailHog web interface port
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgresql
+      DB_PORT: 5432
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgresql
+
+volumes:
+  postgresql:
+    driver: local
