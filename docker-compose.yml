@@ -19,12 +19,16 @@ services:
           - postgresql:/data/postgres
         ports:
           - "${FORWARD_DB_PORT:-5432}:5432"
+        networks:
+          - redis_network
 
   mailhog:
     image: mailhog/mailhog:latest
     container_name: mailhog
     ports:
       - "8025:8025"  # MailHog web interface port
+    networks:
+      - redis_network
 
   web:
     build: .
@@ -35,12 +39,29 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: postgresql
       DB_PORT: 5432
+      REDIS_URL: ${REDIS_URL}
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - 8000:8000
     depends_on:
       - postgresql
+    networks:
+      - redis_network
+
+  redis:
+    container_name: redis
+    image: redis/redis-stack:latest
+    ports:
+      - 6379:6379  # Redis server port
+      - 8001:8001  # Redis Browser port
+    networks:
+      - redis_network
+
+# Define your custom network
+networks:
+  redis_network:
+    driver: bridge
 
 volumes:
   postgresql:

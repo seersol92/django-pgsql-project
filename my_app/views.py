@@ -10,6 +10,8 @@ from django.contrib.auth import authenticate, login as login_user, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .decorators import anonymous_required
+import redis
+from django.core.cache import cache
 
 
 @anonymous_required
@@ -76,24 +78,35 @@ def logout_user(request):
 
 @login_required
 def todo_list(request):
-    filter_option  = request.GET.get('filter', 'all');
+    # Attempt to retrieve cached todos
+    cached_todos = cache.get('cached_todo_list')
+    print(cached_todos);
+    filter_option = request.GET.get('filter', 'all')
 
-    # Default: Fetch all TodoItem objects
-    todos = TodoItem.objects.all()
+    if cached_todos is None:
+        # Cache miss: perform database query
+        # Default: Fetch all TodoItem objects
+        todos = TodoItem.objects.all()
 
-    if filter_option == 'my_todos':
-    # Filter TodoItem objects where created_by matches the logged-in user
-        todos = TodoItem.objects.filter(created_by=request.user)
+        if filter_option == 'my_todos':
+            # Filter TodoItem objects where created_by matches the logged-in user
+            todos = todos.filter(created_by=request.user)
+        elif filter_option == 'completed':
+            todos = todos.filter(completed=True)
+        elif filter_option == 'pending':
+            todos = todos.filter(completed=False)
 
-    elif filter_option == 'completed':
-        todos = todos.filter(completed=True)
-    elif filter_option == 'pending':
-        todos = todos.filter(completed=False)
- 
-    todos = todos.order_by('-created_at')
+        todos = todos.order_by('-created_at')
 
-    todos_count = todos.count()
+        # Store in cache for subsequent requests (expire in 60 seconds)
+        cache.set('cached_todo_list', list(todos), timeout=60)
+    else:
+        # Cache hit: use cached todos
+        todos = cached_todos
+
+    todos_count = len(todos)  # Calculate length instead of querying count again
     return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count, 'filter_option': filter_option})
+
 
 @login_required
 def todo_create(request):
@@ -141,3 +154,15 @@ def send_welcome_email(user_email, username):
         recipient_list=[user_email],
         html_message=html_message,  # HTML content of the email
     )
+
+
+def print_redis_version():
+    try:
+        # Connect to Redis
+        client = redis.Redis(host='redis', port=6379, decode_responses=True)
+        # Get Redis server info
+        info = client.info()
+        # Print Redis server version
+        print("Redis server version:", info['redis_version'])
+    except redis.ConnectionError as e:
+        print("Error connecting to Redis:", e)
