@@ -74,49 +74,68 @@ def register(request):
 @login_required
 def logout_user(request):
     logout(request)
-    return redirect('/login')
+    return redirect('/login/')
+
+
+def fetch_and_cache_todos(request, filter_option):
+    # Fetch todos based on filter option and update the cached list
+    if filter_option == 'my_todos':
+        todos = TodoItem.objects.filter(created_by=request.user)
+    elif filter_option == 'completed':
+        todos = TodoItem.objects.filter(completed=True)
+    elif filter_option == 'pending':
+        todos = TodoItem.objects.filter(completed=False)
+    else:
+        todos = TodoItem.objects.all()
+
+    todos = todos.order_by('-created_at')
+
+     # Cache the entire queryset with a specific key
+    cache_key = f'cached_todo_list_{filter_option}'
+
+     # Store in cache for subsequent requests (expire in x seconds)
+    cache.set(cache_key, todos, timeout=600)
+    return todos
+
 
 @login_required
 def todo_list(request):
-    # Attempt to retrieve cached todos
-    cached_todos = cache.get('cached_todo_list')
-    print(cached_todos);
+     # Fetch filter option from query parameters
     filter_option = request.GET.get('filter', 'all')
 
-    if cached_todos is None:
-        # Cache miss: perform database query
-        # Default: Fetch all TodoItem objects
-        todos = TodoItem.objects.all()
+    # Fetch todos from cache if available
+    todos = cache.get(f'cached_todo_list_{filter_option}')
 
-        if filter_option == 'my_todos':
-            # Filter TodoItem objects where created_by matches the logged-in user
-            todos = todos.filter(created_by=request.user)
-        elif filter_option == 'completed':
-            todos = todos.filter(completed=True)
-        elif filter_option == 'pending':
-            todos = todos.filter(completed=False)
-
-        todos = todos.order_by('-created_at')
-
-        # Store in cache for subsequent requests (expire in 60 seconds)
-        cache.set('cached_todo_list', list(todos), timeout=60)
+    # If cache is not available or needs to be updated
+    if not todos:
+        print("fetching from DB")
+        todos = fetch_and_cache_todos(request, filter_option)
     else:
-        # Cache hit: use cached todos
-        todos = cached_todos
+        print("fetched cache todos")
 
-    todos_count = len(todos)  # Calculate length instead of querying count again
-    return render(request, 'todos/index.html', {'todos': todos, 'todos_count': todos_count, 'filter_option': filter_option})
+    todos_count = todos.count()
+
+    context = {
+        'todos': todos,
+        'todos_count': todos_count,
+        'filter_option': filter_option,
+    }
+
+    return render(request, 'todos/index.html', context)
 
 
 @login_required
 def todo_create(request):
     if request.method == 'POST':
         form = TodoItemForm(request.POST, request.FILES)
-        print(form.data)
         if form.is_valid():
             todo_item = form.save(commit=False)
             todo_item.created_by = request.user  # Assign the current logged-in user
             todo_item.save()
+
+             # Update or invalidate the cache
+            cache.delete_pattern('cached_todo_list_*')
+
             messages.success(request, 'Todo item created successfully!')  # Add success message
             return redirect('todo_list')
     else:
@@ -131,6 +150,10 @@ def todo_update(request, pk):
         form = TodoItemForm(request.POST, instance=todo)
         if form.is_valid():
             form.save()
+            
+             # Update or invalidate the cache
+            cache.delete_pattern('cached_todo_list_*')
+
             return redirect('todo_list')
     else:
         form = TodoItemForm(instance=todo)
@@ -141,6 +164,8 @@ def todo_delete(request, pk):
     todo = get_object_or_404(TodoItem, pk=pk)
     if request.method == 'POST':
         todo.delete()
+         # Update or invalidate the cache
+        cache.delete_pattern('cached_todo_list_*')
         messages.success(request, 'Todo item deleted successfully!')  # Add success message
     return redirect('todo_list')
 
